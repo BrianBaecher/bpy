@@ -1,5 +1,6 @@
 import bpy
 
+
 """
     m3 = [
     [
@@ -22,15 +23,43 @@ import bpy
 ]
 """
 
-def rowWise3dTraverse(matrix, framestep, objectToAnimateName):
-    # start at frame 0 fukit
+
+def glowPulse(objectName, startFrame, duration, intensityChange, isRed):
+    NO_EMISSION = 0.0
+    RED = (1, 0, 0, 1)
+    GREEN = (0, 1, 0, 1)
+
+    obj = bpy.data.objects.get(objectName)
+    objMat = obj.active_material.node_tree.nodes["Principled BSDF"]
+
+    objMatEmissionColor = objMat.inputs[26]
+
+    objMatEmissionColor.default_value = RED if isRed else GREEN
+
+    objMatEmissionStrength = objMat.inputs[27]
+    objMatEmissionStrength.default_value = NO_EMISSION
+
+    objMatEmissionStrength.keyframe_insert(data_path="default_value", frame=startFrame)
+
+    objMatEmissionStrength.default_value = intensityChange
+    peakFrame = int(startFrame + (.5 * duration))
+
+    objMatEmissionStrength.keyframe_insert(data_path="default_value", frame=peakFrame)
+
+    endFrame = startFrame + duration
+    objMatEmissionStrength.default_value = NO_EMISSION
+
+    objMatEmissionStrength.keyframe_insert(data_path="default_value", frame=endFrame)
+
+
+def rowWise3dTraverse(matrix, frameStep, objectToAnimateName):
     frame = 0
     startPos = (0, 0, 10)
     bpy.context.view_layer.objects.active = bpy.data.objects.get(objectToAnimateName)
     obj = bpy.context.active_object
     obj.location = startPos
     obj.keyframe_insert(data_path="location", frame=frame)
-    frame += framestep
+    frame += frameStep
 
     for layer in matrix:
         for row in layer:
@@ -38,25 +67,25 @@ def rowWise3dTraverse(matrix, framestep, objectToAnimateName):
                 bpy.context.view_layer.objects.active = bpy.data.objects.get(objectToAnimateName)
                 obj.location = node.getPos()
                 obj.keyframe_insert(data_path="location", frame=frame)
-                frame += framestep
+                glowPulse(node.getName(), frame, 6, 2, True)
+                frame += frameStep
 
 
-def colWise3dTraverse(matrix, framestep, objectToAnimateName):
-    # start at frame 0 fukit
+def colWise3dTraverse(matrix, frameStep, objectToAnimateName):
     frame = 0
     startPos = (0, 0, 10)
     bpy.context.view_layer.objects.active = bpy.data.objects.get(objectToAnimateName)
     obj = bpy.context.active_object
     obj.location = startPos
     obj.keyframe_insert(data_path="location", frame=frame)
-    frame += framestep
+    frame += frameStep
 
     for layer in matrix:
         depth = len(layer)
         for i in range(depth):
-            for j in range(depth): #width? right now m3 is square/cube so it's fine I think... but with a 5x3...
+            for j in range(depth):  # width? right now m3 is square/cube so it's fine I think... but with a 5x3...
                 node = layer[j][i]
                 bpy.context.view_layer.objects.active = bpy.data.objects.get(objectToAnimateName)
                 obj.location = node.getPos()
                 obj.keyframe_insert(data_path="location", frame=frame)
-                frame += framestep
+                frame += frameStep
