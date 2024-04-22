@@ -4,6 +4,7 @@ import math
 
 spawn = bpy.data.texts["spawn.py"].as_module()
 
+
 class Node:
     def __init__(self, idNum):
         self.id = idNum
@@ -20,6 +21,9 @@ class Node:
     def setName(self, name):
         self.name = name
 
+    def setEmitterNames(self, listOfNames):
+        self.emitterNames = listOfNames
+
     def getPos(self):
         return self.posTuple
 
@@ -31,6 +35,10 @@ class Node:
 
     def getId(self):
         return self.id
+
+    def getEmitterNames(self):
+        return self.emitterNames
+
 
 m3 = [
     [
@@ -70,8 +78,14 @@ def generate3d(threeDimList):
                 bpy.context.view_layer.objects.active = bpy.data.objects.get(nodeBallName)
                 bpy.context.active_object.location = (x,y,z)
                 node.setLayer(layerNum)
-                node.setPos((x,y,z))
+                node.setPos((x, y, z))
                 node.setName(bpy.context.active_object.name)
+
+                emitterNames = spawn.spawnEmitter()
+                node.setEmitterNames(emitterNames)
+                for name in emitterNames:
+                    obj = bpy.data.objects.get(name)
+                    obj.location = (x, y, z)
                 x += 5
                 print(node.id, bpy.context.active_object.name)
     return threeDimList

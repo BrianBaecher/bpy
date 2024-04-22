@@ -15,7 +15,7 @@ def spawnFromFile(path):
 def spawnBall():
     ballPath = storageFolderPath + r"\ball.blend"
     objName = spawnFromFile(ballPath)
-    # adding emmision to ball material
+    # adding emission to ball material
     bpy.context.view_layer.objects.active = bpy.data.objects.get(objName)
     bpy.context.active_object.active_material.node_tree.nodes["Principled BSDF"].inputs[27].default_value = 10.3
 
@@ -27,13 +27,16 @@ def spawnCollection(path):
     with bpy.data.libraries.load(path, link=False) as (data_from, data_to):
         data_to.collections = [name for name in data_from.collections]
 
+    names = []
+
     # Instantiate the collection in the scene
     for collection in data_to.collections:
         for obj in collection.objects:
-            bpy.context.collection.objects.link(obj.copy())
+            copy = obj.copy()
+            names.append(copy.name)
+            bpy.context.collection.objects.link(copy)
 
-    # Return the names of the objects in the collection (optional)
-    return [obj.name for obj in collection.objects]
+    return names
 
 
 def spawnEmitter():

@@ -1,6 +1,5 @@
 import bpy
-
-
+spawner = bpy.data.texts["spawn.py"].as_module()
 """
     m3 = [
     [
@@ -22,7 +21,6 @@ import bpy
         [Node(25), Node(26), Node(27)]],
 ]
 """
-
 
 def glowPulse(objectName, startFrame, duration, intensityChange, isRed):
     NO_EMISSION = 0.0
@@ -52,8 +50,20 @@ def glowPulse(objectName, startFrame, duration, intensityChange, isRed):
     objMatEmissionStrength.keyframe_insert(data_path="default_value", frame=endFrame)
 
 
-def rowWise3dTraverse(matrix, frameStep, objectToAnimateName):
-    frame = 0
+def setParticleEmitter(namesInCollection, startFrame):
+    for name in namesInCollection:
+        print(name)
+        if name.find("EmitterSphere") != -1:
+            bpy.context.view_layer.objects.active = bpy.data.objects.get(name)
+            for m in bpy.context.active_object.modifiers:
+                if m.type == "PARTICLE_SYSTEM":
+                    ps = m.particle_system
+                    ps.settings.frame_start = startFrame
+                    ps.settings.frame_end = startFrame + 1
+
+
+def rowWise3dTraverse(matrix, startFrame, frameStep, objectToAnimateName):
+    frame = startFrame
     startPos = (0, 0, 10)
     bpy.context.view_layer.objects.active = bpy.data.objects.get(objectToAnimateName)
     obj = bpy.context.active_object
@@ -68,6 +78,7 @@ def rowWise3dTraverse(matrix, frameStep, objectToAnimateName):
                 obj.location = node.getPos()
                 obj.keyframe_insert(data_path="location", frame=frame)
                 glowPulse(node.getName(), frame, 6, 2, True)
+                setParticleEmitter(node.getEmitterNames(), frame)
                 frame += frameStep
 
 
